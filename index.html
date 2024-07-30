@@ -354,7 +354,8 @@ function agent(name, guid, x, y, sheet, color, voice) {
             animations: {
                 idle: 0,
                 surf_away: { frames: range(360, 412), next: "gone", speed: 1},
-                surf_intro: { frames: range(823, 848), next: "idle", speed: 1}
+                surf_intro: { frames: range(823, 848), next: "idle", speed: 1},
+                gone: 902
             }
         });
     } else {
@@ -364,7 +365,8 @@ function agent(name, guid, x, y, sheet, color, voice) {
             animations: {
                 idle: 0,
                 surf_away: { frames: range(360, 412), next: "gone", speed: 1},
-                surf_intro: { frames: range(823, 848), next: "idle", speed: 1}
+                surf_intro: { frames: range(823, 848), next: "idle", speed: 1},
+                gone: 902
             }
         });
     }

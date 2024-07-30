@@ -18,7 +18,7 @@ body, html {
     left: 0;
     right: 0;
     height: 30px;
-    background: url('https://raw.githubusercontent.com/ufwt/windows-XP-SP1/master/XPSP1/NT/shell/themes/themedir/luna/blue/taskbarbackground.bmp') repeat-x;
+    background: url('https://i.imgur.com/jADTSC0.png') repeat-x;
     border-top: 1px solid #0054E3;
     display: flex;
     align-items: center;
@@ -32,10 +32,8 @@ body, html {
     background-color: white;
     height: 20px;
 }
-#send_button {
-    width: 70px;
-    height: 25px;
-    background: url('https://raw.githubusercontent.com/ufwt/windows-XP-SP1/master/XPSP1/NT/inetcore/mshtml/src/f3/htmlpad/send.bmp') no-repeat;
+.xp-button {
+    background: url('https://i.imgur.com/qSUUqNY.png') no-repeat;
     background-size: cover;
     border: none;
     color: white;
@@ -44,20 +42,8 @@ body, html {
     cursor: pointer;
     padding-left: 25px;
     text-align: left;
-}
-#tile_agents {
-    width: 70px;
     height: 25px;
-    background: url('https://raw.githubusercontent.com/ufwt/windows-XP-SP1/master/XPSP1/NT/admin/select/src/user.ico') no-repeat;
-    background-size: cover;
-    border: none;
-    color: white;
-    font-weight: bold;
-    text-shadow: 1px 1px 0 #0f3cdd;
-    cursor: pointer;
     margin-right: 5px;
-    padding-left: 25px;
-    text-align: left;
 }
 .agent {
     position: absolute;
@@ -141,7 +127,7 @@ body, html {
     #send_message {
         width: calc(100% - 60px);
     }
-    #send_button {
+    .xp-button {
         width: 50px;
     }
     .speech-bubble {
@@ -167,29 +153,68 @@ body, html {
     text-align: center;
 }
 #chat_log_button {
-    background: url('http://www.classicshell.net/forum/download/file.php?id=5664&sid=87da9fae239fdebc7347741affce6b6e') no-repeat;
+    background: url('https://i.imgur.com/ZSDhCwu.png') no-repeat;
     background-size: contain;
-    display: inline-block;
-    width: 100px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     border: none;
     cursor: pointer;
     margin-right: 5px;
 }
-
-#chat_log_button:hover {
-    background-position: 0px -33px;
+#welcome-window {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 300px;
+    background: url('https://i.imgur.com/Zk6TR5k.jpg') no-repeat center center;
+    background-size: cover;
+    border: 1px solid #0054E3;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-shadow: 1px 1px 2px black;
 }
-
-#chat_log_button:active {
-    background-position: 0px -66px;
+#welcome-window h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
 }
-
-
+#welcome-window button {
+    margin-top: 20px;
+}
+#disconnect-logo, #kick-logo {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 10px;
+}
+#user-counter {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(255,255,255,0.8);
+    padding: 5px;
+    border: 1px solid #0054E3;
+    border-radius: 3px;
+}
 </style>
 </head>
 <body>
-<div id="login" class="window" style="width: 300px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+<div id="welcome-window" class="window">
+    <div class="title-bar">
+        <div class="title-bar-text">Welcome to ClippyChat XP</div>
+    </div>
+    <div class="window-body">
+        <h1>Welcome to ClippyChat XP</h1>
+        <p>Experience the nostalgia of Windows XP in a modern chat environment!</p>
+        <button id="start-chat" class="xp-button">Start Chatting</button>
+    </div>
+</div>
+
+<div id="login" class="window" style="width: 300px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
     <div class="title-bar">
         <div class="title-bar-text">ClippyChat XP Login</div>
     </div>
@@ -202,7 +227,8 @@ body, html {
             <label for="login_room">Room ID:</label>
             <input id="login_room" type="text">
         </p>
-        <button id="login_button">Join Chat</button>
+        <button id="login_button" class="xp-button">Join Chat</button>
+        <button id="available-rooms" class="xp-button">Available Rooms</button>
     </div>
 </div>
 
@@ -210,9 +236,9 @@ body, html {
     <div id="agents"></div>
     <div id="chatbar">
         <button id="chat_log_button" title="Toggle Chat Log"></button>
-        <button id="tile_agents">Tile</button>
+        <button id="tile_agents" class="xp-button">Tile</button>
         <input id="send_message" type="text" placeholder="Type your message...">
-        <button id="send_button">Send</button>
+        <button id="send_button" class="xp-button">Send</button>
     </div>
     <div id="room_info">
         <span id="room_name"></span>
@@ -220,7 +246,9 @@ body, html {
     </div>
 </div>
 
-<div id="version">V1.0.0B</div>
+<div id="user-counter">Users: <span id="user-count">0</span></div>
+
+<div id="version">V1.0.0C</div>
 
 <div id="error-overlay">
     <div id="error-message"></div>
@@ -557,6 +585,11 @@ function send() {
     sounds.send.play();
 }
 
+$("start-chat").addEventListener("click", function() {
+    $("welcome-window").style.display = "none";
+    $("login").style.display = "block";
+});
+
 $("login_button").addEventListener("click", function() {
     self = {
         name: $("login_nickname").value,
@@ -589,6 +622,10 @@ $("tile_agents").addEventListener("click", function() {
     });
 });
 
+$("available-rooms").addEventListener("click", function() {
+    socket.emit("get_rooms");
+});
+
 socket.on("login", function(logindata) {
     $("login").style.display = "none";
     $("chat").style.display = "block";
@@ -600,17 +637,21 @@ socket.on("login", function(logindata) {
         let y = Math.floor(Math.random() * (window.innerHeight - 160 - 32));
         agents[userkey] = new agent(user.name, userkey, x, y, null, user.color, user.voice);
     });
+    
+    updateUserCount(Object.keys(logindata.users).length);
 });
 
 socket.on("join", function(user) {
     let x = Math.floor(Math.random() * (window.innerWidth - 200));
     let y = Math.floor(Math.random() * (window.innerHeight - 160 - 32));
     agents[user.guid] = new agent(user.name, user.guid, x, y, null, user.color, user.voice);
+    updateUserCount(Object.keys(agents).length);
 });
 
 socket.on("leave", function(guid) {
     agents[guid].kill();
     delete agents[guid];
+    updateUserCount(Object.keys(agents).length);
 });
 
 socket.on("update", function(user) {
@@ -638,7 +679,7 @@ socket.on("update_self", function(info) {
 });
 
 socket.on("kick", function(kicker) {
-    msWindow("Kicked", `You have been kicked by ${kicker}`);
+    msWindow("Kicked", `<img id="kick-logo" src="https://64.media.tumblr.com/b22e49d8f52d0e90857458021399339d/63c60cacbd7469c6-f8/s540x810/672e574b011045df3ff463ddc3ddc98f88725fbd.png" alt="Kick Logo"><p>You have been kicked by ${kicker}</p>`);
     sounds.error.play();
 });
 
@@ -648,6 +689,11 @@ socket.on("announce", function(data) {
         announcements[0].remove();
         announcements.shift();
     }
+});
+
+socket.on("room_list", function(rooms) {
+    let roomList = rooms.map(room => `<li>${room.name} (${room.users} users)</li>`).join('');
+    msWindow("Available Rooms", `<ul>${roomList}</ul>`);
 });
 
 // Chat log window
@@ -685,22 +731,22 @@ socket.on("talk", function(text) {
 
 // Error handling and disconnection
 socket.on('connect_error', (error) => {
-    showError('Connection Error', 'Unable to connect to the server. Please check your internet connection and try again.');
+    showError('Connection Error', '<img id="disconnect-logo" src="https://i.imgur.com/jacoj5E.png" alt="Disconnect Logo"><p>Unable to connect to the server. Please check your internet connection and try again.</p>');
     sounds.error.play();
 });
 
 socket.on('disconnect', (reason) => {
     if (reason === 'io server disconnect') {
-        showError('Disconnected', 'You have been disconnected from the server.');
+        showError('Disconnected', '<img id="disconnect-logo" src="https://64.media.tumblr.com/b22e49d8f52d0e90857458021399339d/63c60cacbd7469c6-f8/s540x810/672e574b011045df3ff463ddc3ddc98f88725fbd.png" alt="Disconnect Logo"><p>You have been disconnected from the server.</p>');
     } else {
-        showError('Connection Lost', 'Lost connection to the server. Attempting to reconnect...');
+        showError('Connection Lost', '<img id="disconnect-logo" src="https://64.media.tumblr.com/b22e49d8f52d0e90857458021399339d/63c60cacbd7469c6-f8/s540x810/672e574b011045df3ff463ddc3ddc98f88725fbd.png" alt="Disconnect Logo"><p>Lost connection to the server. Attempting to reconnect...</p>');
     }
     sounds.error.play();
 });
 
 function showError(title, message) {
     $('error-overlay').style.display = 'flex';
-    $('error-message').innerHTML = `<h2>${title}</h2><p>${message}</p>`;
+    $('error-message').innerHTML = `<h2>${title}</h2>${message}`;
 }
 
 // Add a close button to the error message
@@ -710,6 +756,10 @@ closeErrorButton.onclick = () => {
     $('error-overlay').style.display = 'none';
 };
 $('error-message').appendChild(closeErrorButton);
+
+function updateUserCount(count) {
+    $('user-count').innerText = count;
+}
 
 </script>
 </body>

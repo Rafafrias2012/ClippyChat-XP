@@ -17,15 +17,49 @@ body, html {
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 10px;
-    background: #ECE9D8;
+    padding: 5px;
+    background: linear-gradient(to bottom, #0058ee 0%,#3a93ff 3%,#288eff 5%,#127dff 16%,#036ffc 22%,#0262ee 33%,#0057e5 50%,#0054e3 66%,#004ddb 81%,#004cd9 100%);
     border-top: 1px solid #0054E3;
+    display: flex;
+    align-items: center;
 }
 #send_message {
-    width: calc(100% - 80px);
+    flex-grow: 1;
+    margin-right: 5px;
+    padding: 5px;
+    border: 1px solid #7f9db9;
+    background-color: white;
 }
 #send_button {
     width: 70px;
+    height: 30px;
+    background: url('https://coddec.github.io/Classic-Shell/www.classicshell.net/forum/download/filee9ff.png?id=1522') no-repeat;
+    background-size: cover;
+    border: none;
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #0f3cdd;
+    cursor: pointer;
+}
+
+#send_button:hover {
+    background-position: 0px -33px;
+}
+
+#send_button:active {
+    background-position: 0px -66px;
+}
+    
+#tile_agents {
+    width: 70px;
+    height: 30px;
+    background: linear-gradient(to bottom, #0058ee 0%,#3a93ff 3%,#288eff 5%,#127dff 16%,#036ffc 22%,#0262ee 33%,#0057e5 50%,#0054e3 66%,#004ddb 81%,#004cd9 100%);
+    border: 1px solid #0f3cdd;
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #0f3cdd;
+    cursor: pointer;
+    margin-right: 5px;
 }
 .agent {
     position: absolute;
@@ -156,8 +190,9 @@ body, html {
 <div id="chat" style="display:none;">
     <div id="agents"></div>
     <div id="chatbar">
+        <button id="tile_agents">Tile Agents</button>
         <input id="send_message" type="text" placeholder="Type your message...">
-        <button id="send_button">Send</button>
+        <button id="send_button"></button>
     </div>
     <div id="room_info">
         <span id="room_name"></span>
@@ -165,7 +200,7 @@ body, html {
     </div>
 </div>
 
-<div id="version">V0.9</div>
+<div id="version">V1.0.0A</div>
 
 <div id="error-overlay">
     <div id="error-message"></div>
@@ -178,6 +213,13 @@ let agents = {};
 let announcements = [];
 let level = 0;
 const converter = new showdown.Converter();
+
+// Windows XP Sounds
+const sounds = {
+    login: new Audio('https://www.myinstants.com/media/sounds/windows-xp-startup.mp3'),
+    send: new Audio('https://www.myinstants.com/media/sounds/windows-xp-ding.mp3'),
+    error: new Audio('https://www.myinstants.com/media/sounds/windows-xp-error.mp3')
+};
 
 function $(id) { return document.getElementById(id); }
 
@@ -354,8 +396,7 @@ function agent(name, guid, x, y, sheet, color, voice) {
             animations: {
                 idle: 0,
                 surf_away: { frames: range(360, 412), next: "gone", speed: 1},
-                surf_intro: { frames: range(823, 848), next: "idle", speed: 1},
-                gone: 902
+                surf_intro: { frames: range(823, 848), next: "idle", speed: 1}
             }
         });
     } else {
@@ -365,8 +406,7 @@ function agent(name, guid, x, y, sheet, color, voice) {
             animations: {
                 idle: 0,
                 surf_away: { frames: range(360, 412), next: "gone", speed: 1},
-                surf_intro: { frames: range(823, 848), next: "idle", speed: 1},
-                gone: 902
+                surf_intro: { frames: range(823, 848), next: "idle", speed: 1}
             }
         });
     }
@@ -477,6 +517,7 @@ function send() {
         socket.emit("talk", $("send_message").value);
     }
     $("send_message").value = "";
+    sounds.send.play();
 }
 
 $("login_button").addEventListener("click", function() {
@@ -486,11 +527,29 @@ $("login_button").addEventListener("click", function() {
         color: ""
     };
     socket.emit("login", self);
+    sounds.login.play();
 });
 
 $("send_button").addEventListener("click", send);
 $("send_message").addEventListener("keydown", function(e) {
     if (e.keyCode === 13) send();
+});
+
+$("tile_agents").addEventListener("click", function() {
+    let agentDivs = document.querySelectorAll('.agent');
+    let containerWidth = window.innerWidth;
+    let containerHeight = window.innerHeight - 50; // Subtracting height of chatbar
+    let cols = Math.floor(Math.sqrt(agentDivs.length));
+    let rows = Math.ceil(agentDivs.length / cols);
+    let cellWidth = containerWidth / cols;
+    let cellHeight = containerHeight / rows;
+
+    agentDivs.forEach((div, index) => {
+        let row = Math.floor(index / cols);
+        let col = index % cols;
+        div.style.left = (col * cellWidth + (cellWidth - div.offsetWidth) / 2) + 'px';
+        div.style.top = (row * cellHeight + (cellHeight - div.offsetHeight) / 2) + 'px';
+    });
 });
 
 socket.on("login", function(logindata) {
@@ -543,6 +602,7 @@ socket.on("update_self", function(info) {
 
 socket.on("kick", function(kicker) {
     msWindow("Kicked", `You have been kicked by ${kicker}`);
+    sounds.error.play();
 });
 
 socket.on("announce", function(data) {
@@ -596,6 +656,7 @@ socket.on("talk", function(text) {
 // Error handling and disconnection
 socket.on('connect_error', (error) => {
     showError('Connection Error', 'Unable to connect to the server. Please check your internet connection and try again.');
+    sounds.error.play();
 });
 
 socket.on('disconnect', (reason) => {
@@ -604,6 +665,7 @@ socket.on('disconnect', (reason) => {
     } else {
         showError('Connection Lost', 'Lost connection to the server. Attempting to reconnect...');
     }
+    sounds.error.play();
 });
 
 function showError(title, message) {

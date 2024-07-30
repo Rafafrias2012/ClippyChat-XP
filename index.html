@@ -269,7 +269,7 @@ body, html {
 
 <div id="user-counter">Users: <span id="user-count">0</span></div>
 
-<div id="version">V1.0.0D</div>
+<div id="version">V1.0.0E</div>
 
 <div id="error-overlay">
     <div id="error-message"></div>
@@ -803,6 +803,12 @@ socket.on('disconnect', (reason) => {
         showError('Connection Lost', '<img id="disconnect-logo" src="https://i.imgur.com/jacoj5E.png" alt="Disconnect Logo"><p>Lost connection to the server. Attempting to reconnect...</p>');
     }
     sounds.error.play();
+    if (autojoin) {
+        setTimeout(() => {
+            socket.connect();
+            socket.emit("login", self);
+        }, 5000);
+    }
 });
 
 function showError(title, message) {
@@ -872,6 +878,80 @@ let icons = document.querySelectorAll('.windows-xp-icon');
 icons.forEach((icon, index) => {
     icon.style.left = '10px';
     icon.style.top = (10 + index * 80) + 'px';
+});
+
+createWindowsXPIcon('Control Panel', 'https://i.imgur.com/ZSDhCwu.png', () => {
+    msWindow('Control Panel', `
+        <h2>Settings</h2>
+        <button id="change-background">Change Background</button>
+        <button id="change-theme">Change Theme</button>
+        <label><input type="checkbox" id="auto-join"> Enable Autojoin</label>
+    `, 100, 100, 300, 200, (win) => {
+        win.querySelector('#change-background').addEventListener('click', changeBackground);
+        win.querySelector('#change-theme').addEventListener('click', changeTheme);
+        win.querySelector('#auto-join').addEventListener('change', toggleAutojoin);
+    });
+});
+
+function changeBackground() {
+    let newBackground = prompt("Enter new background URL:");
+    if (newBackground) {
+        document.body.style.backgroundImage = `url('${newBackground}')`;
+    }
+}
+
+function changeTheme() {
+    let newTheme = prompt("Enter new theme URL:");
+    if (newTheme) {
+        let link = document.querySelector("link[href^='https://botoxparty.github.io/XP.css/XP.css']");
+        if (link) {
+            link.href = newTheme;
+        }
+    }
+}
+
+let autojoin = false;
+function toggleAutojoin(e) {
+    autojoin = e.target.checked;
+}
+
+function toggleAutojoin(e) {
+    autojoin = e.target.checked;
+}
+
+// Poll functionality
+let poll;
+
+socket.on("poll", data => {
+    if (poll != undefined) {
+        poll.remove();
+    }
+    poll = msWindow("Poll from " + data.name, `
+      <h1>${data.title}</h1>
+      <div id="pollyes"><div id="innerbar_yes"></div><span class='polltx'>YES</span></div>
+      <div id="pollno"><div id="innerbar_no"></div><span class='polltx'>NO</span></div>
+      <span id="votecount">0</span> Votes!
+      `, undefined, undefined, window.innerWidth / 2);
+    $("pollyes").onclick = () => {
+        socket.emit('command', {
+            command: 'vote',
+            param: 'yes'
+        })
+    }
+    $("pollno").onclick = () => {
+        socket.emit('command', {
+            command: 'vote',
+            param: 'no'
+        })
+    }
+});
+
+socket.on("vote", data => {
+    if (poll == undefined) return;
+    let tvotes = data.yes + data.no;
+    $("innerbar_yes").style.width = data.yes / tvotes * 100 + "%";
+    $("innerbar_no").style.width = data.no / tvotes * 100 + "%";
+    $("votecount").innerHTML = tvotes;
 });
 </script>
 </body>

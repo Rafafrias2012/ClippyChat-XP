@@ -200,6 +200,23 @@ body, html {
     border: 1px solid #0054E3;
     border-radius: 3px;
 }
+#taskbar {
+    position: fixed;
+    bottom: 30px;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background: url('https://i.imgur.com/jADTSC0.png') repeat-x;
+    display: flex;
+    align-items: center;
+    padding: 0 5px;
+}
+.taskbar-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 5px;
+    cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -244,11 +261,15 @@ body, html {
         <span id="room_name"></span>
         <span id="room_owner">Room Owner</span>
     </div>
+    <div id="taskbar">
+        <img src="https://i.imgur.com/ZSDhCwu.png" alt="Clock" class="taskbar-icon" id="clock-icon">
+        <img src="https://i.imgur.com/ZSDhCwu.png" alt="Calculator" class="taskbar-icon" id="calculator-icon">
+    </div>
 </div>
 
 <div id="user-counter">Users: <span id="user-count">0</span></div>
 
-<div id="version">V1.0.0C</div>
+<div id="version">V1.0.0D</div>
 
 <div id="error-overlay">
     <div id="error-message"></div>
@@ -626,6 +647,46 @@ $("available-rooms").addEventListener("click", function() {
     socket.emit("get_rooms");
 });
 
+$("clock-icon").addEventListener("click", function() {
+    let clockWindow = msWindow("Clock", `
+        <div id="clock" style="font-size: 24px; text-align: center; margin-top: 20px;"></div>
+    `, 100, 100, 200, 150);
+    
+    function updateClock() {
+        let now = new Date();
+        let clockElement = clockWindow.querySelector("#clock");
+        clockElement.textContent = now.toLocaleTimeString();
+    }
+    
+    updateClock();
+    setInterval(updateClock, 1000);
+});
+
+$("calculator-icon").addEventListener("click", function() {
+    let calcWindow = msWindow("Calculator", `
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 10px;">
+            <input type="text" id="calc-display" style="grid-column: span 4; margin-bottom: 10px;">
+            <button onclick="document.getElementById('calc-display').value=''">C</button>
+            <button onclick="document.getElementById('calc-display').value+='7'">7</button>
+            <button onclick="document.getElementById('calc-display').value+='8'">8</button>
+            <button onclick="document.getElementById('calc-display').value+='9'">9</button>
+            <button onclick="document.getElementById('calc-display').value+='4'">4</button>
+            <button onclick="document.getElementById('calc-display').value+='5'">5</button>
+            <button onclick="document.getElementById('calc-display').value+='6'">6</button>
+            <button onclick="document.getElementById('calc-display').value+='1'">1</button>
+            <button onclick="document.getElementById('calc-display').value+='2'">2</button>
+            <button onclick="document.getElementById('calc-display').value+='3'">3</button>
+            <button onclick="document.getElementById('calc-display').value+='0'">0</button>
+            <button onclick="document.getElementById('calc-display').value+='.'">.</button>
+            <button onclick="document.getElementById('calc-display').value+='+'">+</button>
+            <button onclick="document.getElementById('calc-display').value+='-'">-</button>
+            <button onclick="document.getElementById('calc-display').value+='*'">*</button>
+            <button onclick="document.getElementById('calc-display').value+='/'">/</button>
+            <button onclick="try{document.getElementById('calc-display').value=eval(document.getElementById('calc-display').value)}catch(e){document.getElementById('calc-display').value='Error'}" style="grid-column: span 4;">=</button>
+        </div>
+    `, 150, 150, 250, 300);
+});
+
 socket.on("login", function(logindata) {
     $("login").style.display = "none";
     $("chat").style.display = "block";
@@ -679,7 +740,7 @@ socket.on("update_self", function(info) {
 });
 
 socket.on("kick", function(kicker) {
-    msWindow("Kicked", `<img id="kick-logo" src="https://64.media.tumblr.com/b22e49d8f52d0e90857458021399339d/63c60cacbd7469c6-f8/s540x810/672e574b011045df3ff463ddc3ddc98f88725fbd.png" alt="Kick Logo"><p>You have been kicked by ${kicker}</p>`);
+    msWindow("Kicked", `<img id="kick-logo" src="https://i.imgur.com/jacoj5E.png" alt="Kick Logo"><p>You have been kicked by ${kicker}</p>`);
     sounds.error.play();
 });
 
@@ -737,9 +798,9 @@ socket.on('connect_error', (error) => {
 
 socket.on('disconnect', (reason) => {
     if (reason === 'io server disconnect') {
-        showError('Disconnected', '<img id="disconnect-logo" src="https://64.media.tumblr.com/b22e49d8f52d0e90857458021399339d/63c60cacbd7469c6-f8/s540x810/672e574b011045df3ff463ddc3ddc98f88725fbd.png" alt="Disconnect Logo"><p>You have been disconnected from the server.</p>');
+        showError('Disconnected', '<img id="disconnect-logo" src="https://i.imgur.com/jacoj5E.png" alt="Disconnect Logo"><p>You have been disconnected from the server.</p>');
     } else {
-        showError('Connection Lost', '<img id="disconnect-logo" src="https://64.media.tumblr.com/b22e49d8f52d0e90857458021399339d/63c60cacbd7469c6-f8/s540x810/672e574b011045df3ff463ddc3ddc98f88725fbd.png" alt="Disconnect Logo"><p>Lost connection to the server. Attempting to reconnect...</p>');
+        showError('Connection Lost', '<img id="disconnect-logo" src="https://i.imgur.com/jacoj5E.png" alt="Disconnect Logo"><p>Lost connection to the server. Attempting to reconnect...</p>');
     }
     sounds.error.play();
 });
@@ -761,6 +822,57 @@ function updateUserCount(count) {
     $('user-count').innerText = count;
 }
 
+// Windows XP Icon Function
+function createWindowsXPIcon(name, iconUrl, clickHandler) {
+    let icon = document.createElement('div');
+    icon.className = 'windows-xp-icon';
+    icon.style.width = '64px';
+    icon.style.height = '64px';
+    icon.style.position = 'absolute';
+    icon.style.cursor = 'pointer';
+    icon.style.textAlign = 'center';
+    
+    let img = document.createElement('img');
+    img.src = iconUrl;
+    img.style.width = '32px';
+    img.style.height = '32px';
+    
+    let text = document.createElement('div');
+    text.textContent = name;
+    text.style.fontSize = '12px';
+    text.style.wordWrap = 'break-word';
+    text.style.color = 'white';
+    text.style.textShadow = '1px 1px 1px black';
+    
+    icon.appendChild(img);
+    icon.appendChild(text);
+    
+    icon.addEventListener('click', clickHandler);
+    
+    document.body.appendChild(icon);
+    
+    return icon;
+}
+
+// Create desktop icons
+createWindowsXPIcon('My Computer', 'https://i.imgur.com/ZSDhCwu.png', () => {
+    msWindow('My Computer', '<p>This is your computer.</p>');
+});
+
+createWindowsXPIcon('Recycle Bin', 'https://i.imgur.com/ZSDhCwu.png', () => {
+    msWindow('Recycle Bin', '<p>The recycle bin is empty.</p>');
+});
+
+createWindowsXPIcon('Internet Explorer', 'https://i.imgur.com/ZSDhCwu.png', () => {
+    msWindow('Internet Explorer', '<iframe src="https://www.example.com" style="width: 100%; height: 100%; border: none;"></iframe>', 100, 100, 800, 600);
+});
+
+// Position icons
+let icons = document.querySelectorAll('.windows-xp-icon');
+icons.forEach((icon, index) => {
+    icon.style.left = '10px';
+    icon.style.top = (10 + index * 80) + 'px';
+});
 </script>
 </body>
 </html>

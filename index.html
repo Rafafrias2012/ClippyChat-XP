@@ -653,7 +653,7 @@ function agent(name, guid, x, y, sheet, color, voice) {
         setTimeout(() => this.actqueue(queue, index + 1), act.duration || 1000);
     }
 
-    this.on("mousedown", (e) => {
+    this.addEventListener("mousedown", (e) => {
         if (e.nativeEvent.button === 2) { // Right-click
             showContextMenu(e.nativeEvent, this.guid);
         }

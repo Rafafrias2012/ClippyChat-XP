@@ -115,6 +115,24 @@ body, html {
         max-width: 150px;
     }
 }
+#error-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+#error-message {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
 </style>
 </head>
 <body>
@@ -147,7 +165,11 @@ body, html {
     </div>
 </div>
 
-<div id="version">V0.7</div>
+<div id="version">V0.8</div>
+
+<div id="error-overlay">
+    <div id="error-message"></div>
+</div>
 
 <script>
 const socket = io('https://bonziworld.org/');
@@ -343,6 +365,9 @@ function agent(name, guid, x, y, sheet, color, voice) {
         // Desanitize the text
         htmlText = desanitize(htmlText);
         
+        // Censor R34 images
+        htmlText = htmlText.replace(/<img.*?src=".*?rule34\.xxx.*?".*?>/gi, '[Censored]');
+        
         bubble.innerHTML = htmlText;
         div.appendChild(bubble);
         
@@ -534,5 +559,32 @@ socket.on("talk", function(text) {
     addToChatLog(`<strong>${agents[text.guid].name}:</strong> ${htmlText}`);
 });
 
+// Error handling and disconnection
+socket.on('connect_error', (error) => {
+    showError('Connection Error', 'Unable to connect to the server. Please check your internet connection and try again.');
+});
+
+socket.on('disconnect', (reason) => {
+    if (reason === 'io server disconnect') {
+        showError('Disconnected', 'You have been disconnected from the server.');
+    } else {
+        showError('Connection Lost', 'Lost connection to the server. Attempting to reconnect...');
+    }
+});
+
+function showError(title, message) {
+    $('error-overlay').style.display = 'flex';
+    $('error-message').innerHTML = `<h2>${title}</h2><p>${message}</p>`;
+}
+
+// Add a close button to the error message
+let closeErrorButton = document.createElement('button');
+closeErrorButton.innerText = 'Close';
+closeErrorButton.onclick = () => {
+    $('error-overlay').style.display = 'none';
+};
+$('error-message').appendChild(closeErrorButton);
+
 </script>
-</body></html>
+</body>
+</html>

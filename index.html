@@ -165,7 +165,7 @@ body, html {
     </div>
 </div>
 
-<div id="version">V0.8</div>
+<div id="version">V0.9</div>
 
 <div id="error-overlay">
     <div id="error-message"></div>
@@ -183,6 +183,10 @@ function $(id) { return document.getElementById(id); }
 
 function desanitize(text){
     return text.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&apos;/g, "'").replace(/&lbrack;/g, "square bracket");
+}
+
+function range(start, end) {
+    return Array.from({length: end - start + 1}, (_, i) => start + i);
 }
 
 function msWindow(title, html, x = 100, y = 100, w = 300, h = 200, callback) {
@@ -264,7 +268,7 @@ function agent(name, guid, x, y, sheet, color, voice) {
     div.style.top = y + 'px';
     
     let canvas = document.createElement('canvas');
-    let agentType = Math.floor(Math.random() * 3); // 0: Clippy, 1: Peedy, 2: Bonzi
+    let agentType = Math.floor(Math.random() * 5); // 0: Clippy, 1: Peedy, 2: Bonzi, 3: Genie, 4: Merlin
     
     if (agentType === 0) {
         canvas.width = 124;
@@ -272,9 +276,12 @@ function agent(name, guid, x, y, sheet, color, voice) {
     } else if (agentType === 1) {
         canvas.width = 160;
         canvas.height = 128;
-    } else {
+    } else if (agentType === 2) {
         canvas.width = 200;
         canvas.height = 160;
+    } else {
+        canvas.width = 128;
+        canvas.height = 128;
     }
     
     div.appendChild(canvas);
@@ -323,7 +330,7 @@ function agent(name, guid, x, y, sheet, color, voice) {
                 }
             }
         });
-    } else {
+    } else if (agentType === 2) {
         spriteSheet = new createjs.SpriteSheet({
             images: ["https://bonziworld.org/img/agents/purple.png"],
             frames: {width: 200, height: 160},
@@ -338,6 +345,26 @@ function agent(name, guid, x, y, sheet, color, voice) {
                     frames: [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40],
                     speed: 0.25
                 }
+            }
+        });
+    } else if (agentType === 3) {
+        spriteSheet = new createjs.SpriteSheet({
+            images: ["https://raw.githubusercontent.com/dwarfpuzzles/Bonzi-oldstolencode/main/build/www/img/bonzi/genie.png"],
+            frames: {width: 128, height: 128},
+            animations: {
+                idle: 0,
+                surf_away: { frames: range(360, 412), next: "gone", speed: 1},
+                surf_intro: { frames: range(823, 848), next: "idle", speed: 1}
+            }
+        });
+    } else {
+        spriteSheet = new createjs.SpriteSheet({
+            images: ["https://raw.githubusercontent.com/dwarfpuzzles/Bonzi-oldstolencode/main/build/www/img/bonzi/merlin.png"],
+            frames: {width: 128, height: 128},
+            animations: {
+                idle: 0,
+                surf_away: { frames: range(360, 412), next: "gone", speed: 1},
+                surf_intro: { frames: range(823, 848), next: "idle", speed: 1}
             }
         });
     }
@@ -366,7 +393,10 @@ function agent(name, guid, x, y, sheet, color, voice) {
         htmlText = desanitize(htmlText);
         
         // Censor R34 images
-        htmlText = htmlText.replace(/<img.*?src=".*?rule34\.xxx.*?".*?>/gi, '[Censored]');
+        htmlText = htmlText.replace(/<img.*?src=".*?rule34\.xxx.*?".*?>/gi, '[R34 Image Censored]');
+        
+        // Linkify URLs
+        htmlText = htmlText.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
         
         bubble.innerHTML = htmlText;
         div.appendChild(bubble);
@@ -556,6 +586,8 @@ socket.on("talk", function(text) {
     let htmlText = converter.makeHtml(text.text);
     htmlText = htmlText.replace(/\$r\$(.*?)\$r\$/g, '<span class="rainbow-text">$1</span>');
     htmlText = desanitize(htmlText);
+    // Linkify URLs
+    htmlText = htmlText.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
     addToChatLog(`<strong>${agents[text.guid].name}:</strong> ${htmlText}`);
 });
 

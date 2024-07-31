@@ -621,7 +621,7 @@ function agent(name, guid, x, y, sheet, color, voice) {
         setTimeout(() => this.actqueue(queue, index + 1), act.duration || 1000);
     }
 
-    updateTag() {
+    this.updateTag = function() {
         if (this.pub.tagged) {
             $(this.id + "tg").style.display = "inline-block";
             $(this.id + "tg").innerHTML = this.pub.tag;

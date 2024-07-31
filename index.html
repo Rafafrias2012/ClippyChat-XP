@@ -310,7 +310,7 @@ body, html {
 
 <div id="user-counter">Users: <span id="user-count">0</span></div>
 
-<div id="version">V8.0.0G</div>
+<div id="version">V8.0.0</div>
 
 <div id="error-overlay">
     <div id="error-message"></div>
@@ -435,6 +435,16 @@ function agent(name, guid, x, y, sheet, color, voice) {
     this.color = color;
     this.voice = voice;
     this.id = 'agent_' + guid;
+    this.pub = {
+            tagged: false,
+            tag: ""
+        };
+
+        // Create tag element
+        let tagElement = document.createElement("span");
+        tagElement.id = id + "tg";
+        tagElement.className = "user-tag";
+        $(id).appendChild(tagElement);
     
     let div = document.createElement('div');
     div.id = this.id;
@@ -600,6 +610,15 @@ function agent(name, guid, x, y, sheet, color, voice) {
         let act = queue[index];
         // Implement act logic here
         setTimeout(() => this.actqueue(queue, index + 1), act.duration || 1000);
+    }
+
+    updateTag() {
+        if (this.pub.tagged) {
+            $(this.id + "tg").style.display = "inline-block";
+            $(this.id + "tg").innerHTML = this.pub.tag;
+        } else {
+            $(this.id + "tg").style.display = "none";
+        }
     }
     
     // Make agent draggable
@@ -785,6 +804,14 @@ socket.on("update", function(user) {
             agent.change(user.color);
         }
     }
+    if (user.tag != agent.pub.tag && user.tagged) {
+            agent.pub.tag = user.tag;
+            agent.pub.tagged = true;
+            agent.updateTag();
+        } else if (!user.tagged) {
+            agent.pub.tagged = false;
+            agent.updateTag();
+        }
 });
 
 socket.on("talk", function(text) {

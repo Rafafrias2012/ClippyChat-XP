@@ -308,17 +308,9 @@ body, html {
 
     <div id="talkcard"></div>
 
-<div id="context-menu" class="context-menu">
-    <ul>
-        <li id="reply-option">Reply</li>
-        <li id="dm-option">Direct Message</li>
-    </ul>
-  </div>
-</div>
-
 <div id="user-counter">Users: <span id="user-count">0</span></div>
 
-<div id="version">V1.0.0E</div>
+<div id="version">V8.0.0G</div>
 
 <div id="error-overlay">
     <div id="error-message"></div>
@@ -334,6 +326,8 @@ let contextMenu = $('context-menu');
 let talkcard = $('talkcard');
 let talktarget = null;
 window.talkstate = 0;
+let welcomeversion = 2;
+let settings = loadSettings();
 const converter = new showdown.Converter();
 
 // Windows XP Sounds
@@ -1162,6 +1156,42 @@ const additionalStyles = `
 let styleElement = document.createElement('style');
 styleElement.textContent = additionalStyles;
 document.head.appendChild(styleElement);
+
+function loadSettings() {
+    let cookie = document.cookie.split(';').find(row => row.trim().startsWith('settings='));
+    return cookie ? JSON.parse(cookie.split('=')[1]) : { welcome: 0 };
+}
+
+function compileCookie(settings) {
+    return 'settings=' + JSON.stringify(settings) + ';path=/;expires=' + new Date(Date.now() + 31536000000).toUTCString();
+}
+
+if (settings.welcome != welcomeversion) {
+    settings.welcome = welcomeversion;
+    document.cookie = compileCookie(settings);
+    
+    // Show welcome window
+    let welcomeWindow = msWindow("Welcome to ClippyChat XP V8.0.0G", `
+        <div id="welcome-window">
+            <h1>Welcome to ClippyChat XP</h1>
+            <p>Experience the nostalgia of Windows XP in a modern chat environment!</p>
+            <p>New in this version:</p>
+            <ul>
+                <li>Enhanced graphics</li>
+                <li>Improved taskbar</li>
+                <li>Windows XP styled buttons</li>
+            </ul>
+            <button id="start-chat" class="xp-button">Start Chatting</button>
+        </div>
+    `, 100, 100, 400, 300);
+
+    $("start-chat").addEventListener("click", function() {
+        welcomeWindow.remove();
+        $("login").style.display = "block";
+    });
+}
+
+
 
 </script>
 </body>

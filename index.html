@@ -534,8 +534,8 @@ function agent(name, guid, x, y, sheet, color, voice) {
             frames: {width: 128, height: 128},
             animations: {
                 idle: 0,
-                surf_away: { frames: range(360, 412), next: "gone", speed: 1},
-                surf_intro: { frames: range(823, 848), next: "idle", speed: 1}
+                leave: { frames: range(360, 412), next: "gone", speed: 1},
+                enter: { frames: range(823, 848), next: "idle", speed: 1}
             }
         });
     } else {
@@ -544,8 +544,8 @@ function agent(name, guid, x, y, sheet, color, voice) {
             frames: {width: 128, height: 128},
             animations: {
                 idle: 0,
-                surf_away: { frames: range(360, 412), next: "gone", speed: 1},
-                surf_intro: { frames: range(823, 848), next: "idle", speed: 1}
+                leave: { frames: range(360, 412), next: "gone", speed: 1},
+                enter: { frames: range(823, 848), next: "idle", speed: 1}
             }
         });
     }
@@ -982,10 +982,6 @@ function toggleAutojoin(e) {
     autojoin = e.target.checked;
 }
 
-function toggleAutojoin(e) {
-    autojoin = e.target.checked;
-}
-
 // Poll functionality
 let poll;
 
@@ -1046,6 +1042,127 @@ $('dm-option').addEventListener('click', () => {
 document.addEventListener('click', () => {
     contextMenu.style.display = 'none';
 });
+
+document.addEventListener("contextmenu", mouse => {
+    mouse.preventDefault();
+    moving = false;
+    //Find agent the mouse is over
+    let bid = -1;
+    Object.keys(agents).forEach((akey) => {
+        //Check if within bounds of an agent. Pretty long condition.
+        if (
+            mouse.clientX > agents[akey].x &&
+            mouse.clientX < agents[akey].x + agents[akey].w &&
+            mouse.clientY > agents[akey].y &&
+            mouse.clientY < agents[akey].y + agents[akey].h + agents[akey].toppad
+        ) bid = akey;
+    })
+
+    //Contextmenu if found passing agent through
+    if (bid > -1) {
+        //Define the contextmenu upon click (so it can be dynamic)
+        let cmenu = [{
+            type: 0,
+            name: "Cancel",
+            callback: (passthrough) => {
+                passthrough.cancel();
+            }
+        }, {
+            type: 0,
+            name: "Call an Asshole",
+            callback: (passthrough) => {
+                socket.emit("command", {
+                    command: "asshole",
+                    param: passthrough.name
+                })
+            }
+        }, {
+            type: 0,
+            name: "Notice Bulge",
+            callback: (passthrough) => {
+                socket.emit("command", {
+                    command: "owo",
+                    param: passthrough.name
+                })
+            }
+        }, {
+            type: 0,
+            name: "Kick",
+            disabled: level < 1,
+            callback: (passthrough) => {
+                socket.emit("command", {
+                    command: "kick",
+                    param: passthrough.id
+                })
+            }
+        }]
+        contextmenu(cmenu, mouse.clientX, mouse.clientY, agents[bid]);
+    }
+})
+
+function contextmenu(items, x, y, passthrough) {
+    let menu = document.createElement('div');
+    menu.className = 'context-menu';
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+
+    items.forEach(item => {
+        let menuItem = document.createElement('div');
+        menuItem.className = 'context-menu-item';
+        menuItem.textContent = item.name;
+        if (item.disabled) {
+            menuItem.classList.add('disabled');
+        } else {
+            menuItem.addEventListener('click', () => {
+                item.callback(passthrough);
+                menu.remove();
+            });
+        }
+        menu.appendChild(menuItem);
+    });
+
+    document.body.appendChild(menu);
+
+    document.addEventListener('click', function closeMenu() {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+    });
+}
+
+// Add this to your existing styles
+const additionalStyles = `
+.context-menu {
+    position: absolute;
+    background-color: #f0f0f0;
+    border: 1px solid #999;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    padding: 5px 0;
+    z-index: 1000;
+}
+
+.context-menu-item {
+    padding: 5px 20px;
+    cursor: pointer;
+}
+
+.context-menu-item:hover {
+    background-color: #e0e0e0;
+}
+
+.context-menu-item.disabled {
+    color: #999;
+    cursor: default;
+}
+
+.context-menu-item.disabled:hover {
+    background-color: transparent;
+}
+`;
+
+let styleElement = document.createElement('style');
+styleElement.textContent = additionalStyles;
+document.head.appendChild(styleElement);
+
 </script>
 </body>
 </html>

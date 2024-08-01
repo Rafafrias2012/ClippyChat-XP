@@ -76,15 +76,6 @@ body, html {
     white-space: nowrap;
     box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
 }
-.user-tag {
-    display: none;
-    background-color: #f0f0f0;
-    border: 1px solid #999;
-    border-radius: 3px;
-    padding: 2px 5px;
-    font-size: 12px;
-    margin-left: 5px;
-}
 #room_info {
     position: fixed;
     bottom: 50px;
@@ -444,16 +435,6 @@ function agent(name, guid, x, y, sheet, color, voice) {
     this.color = color;
     this.voice = voice;
     this.id = 'agent_' + guid;
-    this.pub = {
-            tagged: false,
-            tag: ""
-        };
-
-        // Create tag element
-        let tagElement = document.createElement("span");
-        tagElement.id = id + "tg";
-        tagElement.className = "user-tag";
-        $(id).appendChild(tagElement);
     
     let div = document.createElement('div');
     div.id = this.id;
@@ -536,7 +517,7 @@ function agent(name, guid, x, y, sheet, color, voice) {
                     speed: 0.25
                 },
                 leave: {
-                    frames: [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40],
+                    frames: Array.from({ length: 55 }, (_, i) => i + 266),
                     speed: 0.25
                 }
             }
@@ -551,7 +532,7 @@ function agent(name, guid, x, y, sheet, color, voice) {
                 enter: { frames: range(823, 848), next: "idle", speed: 1}
             }
         });
-    } else {
+    } else if (agentType === 4) {
         spriteSheet = new createjs.SpriteSheet({
             images: ["https://raw.githubusercontent.com/dwarfpuzzles/Bonzi-oldstolencode/main/build/www/img/bonzi/merlin.png"],
             frames: {width: 128, height: 128},
@@ -559,6 +540,23 @@ function agent(name, guid, x, y, sheet, color, voice) {
                 idle: 0,
                 leave: { frames: range(360, 412), next: "gone", speed: 1},
                 enter: { frames: range(823, 848), next: "idle", speed: 1}
+            }
+        });
+    } else {
+        spriteSheet = new createjs.SpriteSheet({
+            images: ["victor.png"],
+            frames: {width: 180, height: 180},
+            animations: {
+                idle: 0,
+                enter: {
+                    frames: [716, 717, 718, 719, 720, 721, 722, 723, 724, 725, 726, 727, 728, 729, 730, 731, 732, 733, 734, 735, 736, 737, 738, 739, 740, 741, 742, 743, 744, 745, 746, 747],
+                    next: "idle",
+                    speed: 0.5
+                },
+                leave: {
+                    frames: Array.from({length: 55}, (_, i) => 266 + i),
+                    speed: 0.25
+                }
             }
         });
     }
@@ -619,15 +617,6 @@ function agent(name, guid, x, y, sheet, color, voice) {
         let act = queue[index];
         // Implement act logic here
         setTimeout(() => this.actqueue(queue, index + 1), act.duration || 1000);
-    }
-
-    this.updateTag = function() {
-        if (this.pub.tagged) {
-            $(this.id + "tg").style.display = "inline-block";
-            $(this.id + "tg").innerHTML = this.pub.tag;
-        } else {
-            $(this.id + "tg").style.display = "none";
-        }
     }
     
     // Make agent draggable
@@ -813,14 +802,6 @@ socket.on("update", function(user) {
             agent.change(user.color);
         }
     }
-    if (user.tag != agent.pub.tag && user.tagged) {
-            agent.pub.tag = user.tag;
-            agent.pub.tagged = true;
-            agent.updateTag();
-        } else if (!user.tagged) {
-            agent.pub.tagged = false;
-            agent.updateTag();
-        }
 });
 
 socket.on("talk", function(text) {
@@ -1213,9 +1194,7 @@ if (settings.welcome != welcomeversion) {
             <p>Experience the nostalgia of Windows XP in a modern chat environment!</p>
             <p>New in this version:</p>
             <ul>
-                <li>Enhanced graphics</li>
-                <li>Improved taskbar</li>
-                <li>Windows XP styled buttons</li>
+                <li>Added Victor</li>
             </ul>
             <button id="start-chat" class="xp-button">Start Chatting</button>
         </div>

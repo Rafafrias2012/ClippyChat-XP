@@ -443,7 +443,7 @@ function agent(name, guid, x, y, sheet, color, voice) {
     div.style.top = y + 'px';
     
     let canvas = document.createElement('canvas');
-    let agentType = Math.floor(Math.random() * 5); // 0: Clippy, 1: Peedy, 2: Bonzi, 3: Genie, 4: Merlin
+    let agentType = Math.floor(Math.random() * 6); // 0: Clippy, 1: Peedy, 2: Bonzi, 3: Genie, 4: Merlin
     
     if (agentType === 0) {
         canvas.width = 124;
@@ -454,9 +454,12 @@ function agent(name, guid, x, y, sheet, color, voice) {
     } else if (agentType === 2) {
         canvas.width = 200;
         canvas.height = 160;
-    } else {
+    } else if (agentType === 3 || 4) {
         canvas.width = 128;
         canvas.height = 128;
+    } else {
+        canvas.width = 180;
+        canvas.height = 180;
     }
     
     div.appendChild(canvas);

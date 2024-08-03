@@ -357,7 +357,7 @@ body, html {
 
 <div id="user-counter">Users: <span id="user-count">0</span></div>
 
-<div id="version">V8.2.0 (ALPHA)</div>
+<div id="version">V8.2.0 (BETA)</div>
 
 <div id="timezone"></div>
 
@@ -550,7 +550,7 @@ function agent(name, guid, x, y, sheet, color, voice, isBot = false) {
     let username = document.createElement('div');
     username.id = this.id + 'n';
     username.className = 'username-bubble';
-    username.innerText = name;
+    username.innerHTML = converter.makeHtml(name);
     if (isBot) {
         let botTag = document.createElement('span');
         botTag.className = 'bot-tag';
@@ -695,9 +695,30 @@ function agent(name, guid, x, y, sheet, color, voice, isBot = false) {
         audio.play();
     }
     
-    this.change = function(newColor) {
-        this.color = newColor;
-        // You would need to update the sprite sheet here with the new color's image
+    this.change = function(newImage) {
+        this.cancel();
+        let sheet = sheets[types[newImage]];
+        let spritesheet;
+        if (newImage.startsWith("http")) {
+            if (settings.disableCCs) {
+                newImage = "purple";
+                spritesheet = spritesheets["purple"];
+            } else {
+                let img = new Image();
+                img.crossOrigin = "anonymous";
+                img.src = newImage;
+                //Make new sheet
+                spritesheet = new createjs.SpriteSheet({
+                    images: [img],
+                    frames: {
+                        width: 200,
+                        height: 160
+                    },
+                    animations: agenttype === 2
+                })
+            }
+        }
+        // Update sprite sheet and animations here
     }
     
     this.kill = function() {
@@ -1222,6 +1243,16 @@ document.addEventListener("contextmenu", mouse => {
                     param: passthrough.id
                 })
             }
+        }, {
+            type: 0,
+            name: "Blacklist Crosscolor",
+            disabled: level <= 2,
+            callback: (passthrough) => {
+                socket.emit("command", {
+                    command: "blacklistcc",
+                    param: passthrough.id
+                })
+            }
         }]
         contextmenu(cmenu, mouse.clientX, mouse.clientY, agents[bid]);
     }
@@ -1359,7 +1390,7 @@ if (settings.welcome != welcomeversion) {
     document.cookie = compileCookie(settings);
     
     // Show welcome window
-    let welcomeWindow = msWindow("Welcome to ClippyChat XP V8.2.0 (ALPHA)", `
+    let welcomeWindow = msWindow("Welcome to ClippyChat XP V8.2.0 (BETA)", `
         <div id="welcome-window">
             <h1>Welcome to ClippyChat XP</h1>
             <p>Experience the nostalgia of Windows XP in a modern chat environment!</p>
